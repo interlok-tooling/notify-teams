@@ -1,8 +1,8 @@
 name: 'Notify Teams'
 description: 'Notify a Teams channel when a build fails or recovers'
 inputs:
-  teams-webhook-url-secret-name:
-    description: 'Name of the secret of the Teams webhook URL'
+  teams-webhook-url:
+    description: 'Teams webhook URL'
     required: true
 runs:
   using: "composite"
@@ -36,5 +36,5 @@ runs:
          cat << EOF > message.json
          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Gradle Publish Back to Normal!","themeColor":"00ff00","title":"Success Notification from GitHub Gradle Publish","sections":[{"facts":[{"name":"Status:","value":"Back to Normal"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"},{"name":"Commit:","value":"$GITHUB_SHA"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
          EOF
-         curl -X POST ${{ secrets[inputs.teams-webhook-url-secret-name] }} --header "Content-Type: application/json" -d @message.json
+         curl -X POST ${{ inputs.teams-webhook-url }} --header "Content-Type: application/json" -d @message.json
       shell: bash
