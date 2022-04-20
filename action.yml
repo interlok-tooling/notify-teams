@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Notify Teams About Failure
-      if: ${{ failure() }}
+      if: ${{ job.status == 'failure' }}
       run: |
          cat << EOF > message.json
          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Gradle Publish Failed!","themeColor":"ff0000","title":"Failure Notification from GitHub Gradle Publish","sections":[{"facts":[{"name":"Status:","value":"Failed"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"},{"name":"Commit:","value":"$GITHUB_SHA"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
@@ -16,7 +16,7 @@ runs:
          curl -X POST ${{ inputs.teams-webhook-url }} --header "Content-Type: application/json" -d @message.json
       shell: bash
     - name: Get current workflow id
-      if: ${{ success() }}
+      if: ${{ job.status == 'success' }}
       uses: actions/github-script@v6
       id: workflow-id
       with:
@@ -29,7 +29,7 @@ runs:
           return run.data.workflow_id
         result-encoding: string
     - name: Get latest workflow run status
-      if: ${{ success() }}
+      if: ${{ job.status == 'success' }}
       uses: actions/github-script@v6
       id: latest-workflow-status
       with:
@@ -44,7 +44,7 @@ runs:
         result-encoding: string
     # If previous workflow run failed and the current succeeded
     - name: Notify Teams About Failure Recovery
-      if: ${{ success() && steps.latest-workflow-status.outputs.result == 'failure' }}
+      if: ${{ job.status == 'success' && steps.latest-workflow-status.outputs.result == 'failure' }}
       run: |
          cat << EOF > message.json
          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Gradle Publish Back to Normal!","themeColor":"00ff00","title":"Success Notification from GitHub Gradle Publish","sections":[{"facts":[{"name":"Status:","value":"Back to Normal"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"},{"name":"Commit:","value":"$GITHUB_SHA"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
