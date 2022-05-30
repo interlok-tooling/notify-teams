@@ -40,7 +40,8 @@ runs:
             workflow_id: ${{ steps.workflow-id.outputs.result }},
             per_page: 2
           })
-          return runs.data.workflow_runs[1].conclusion
+          // If there is no previous workflow runs we assume that was a failure to report it on Teams
+          return runs.data.workflow_runs[1] ? runs.data.workflow_runs[1].conclusion : "failure"
         result-encoding: string
     # If previous workflow run failed and the current succeeded
     - name: Notify Teams About Failure Recovery
